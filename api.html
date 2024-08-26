@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      td,
+      th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #dddddd;
+      }
+      .headerdiv {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .form input {
+        padding: 7px;
+      }
+      .form button {
+        background-color: green;
+        color: white;
+        padding: 7px;
+        cursor: pointer;
+        width: 100px;
+      }
+      .form button:hover {
+        background-color: rgb(42, 153, 42);
+      }
+      .form button:active {
+        transform: scale(0.98);
+      }
+      #tbody tr td button{
+        background-color: red;
+        color: #fff;
+        padding: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="headerdiv">
+      <h2>All Users</h2>
+      <div class="form">
+        <input type="text" placeholder="FirstName" id="firstName" />
+        <input type="text" placeholder="LastName" id="lastName" />
+        <input type="text" placeholder="Age" id="age" />
+        <button type="button" onclick="CreateUser()">Submit</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Firstname</th>
+          <th>Lastname</th>
+          <th>Age</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <!-- <tr>
+          <td>Alfreds Futterkiste</td>
+          <td>Maria Anders</td>
+          <td>Germany</td>
+        </tr> -->
+      </tbody>
+    </table>
+
+    <script>
+      async function fetchData() {
+        try {
+          const response = await fetch("http://localhost:5015/api/Users");
+          const data = await response.json();
+          const tbody = document.getElementById("tbody");
+          tbody.innerHTML = "";
+          data.forEach((user, index) => {
+            const tr = document.createElement("tr");
+
+            const firstnameTD = document.createElement("td");
+            firstnameTD.textContent = user.firstName;
+            tr.appendChild(firstnameTD);
+
+            const lastnameTD = document.createElement("td");
+            lastnameTD.textContent = user.lastName;
+            tr.appendChild(lastnameTD);
+
+            const ageTD = document.createElement("td");
+            ageTD.textContent = user.age;
+            tr.appendChild(ageTD);
+            
+            const deleteTD = document.createElement("td");
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteTD.appendChild(deleteButton);
+            tr.appendChild(deleteTD);
+            deleteButton.onclick = () => DeleteProduct(user.id);
+
+            tbody.appendChild(tr);
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function CreateUser() {
+        const firstName = document.getElementById("firstName").value;
+        const lastName = document.getElementById("lastName").value;
+        const age = document.getElementById("age").value;
+
+        const newUser = {
+          firstName: firstName,
+          lastName: lastName,
+          age: parseInt(age),
+        };
+
+        try {
+          const response = await fetch("http://localhost:5015/api/Users", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newUser),
+          });
+          if (response.ok) {
+            document.getElementById("firstName").value = "";
+            document.getElementById("lastName").value = "";
+            document.getElementById("age").value = "";
+
+            fetchData();
+          } else console.log("Beklenmeyen bir hata!");
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function DeleteProduct(id) {
+        const response = await fetch(`http://localhost:5015/api/Users/${id}`,{
+            method: "DELETE",  
+        });
+
+        if (response.ok) {
+            fetchData();
+        }
+        else{
+            console.error("Beklenmeyen bir hata!");
+        }
+      }
+
+      fetchData();
+    </script>
+  </body>
+</html>
